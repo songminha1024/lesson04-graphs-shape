@@ -279,3 +279,74 @@ st.write(
     "단, 산점도만으로 스크린 수가 관객 수 증가의 직접적인 원인이라고 "
     "단정할 수는 없다."
 )
+
+
+# ----------------------------------
+# 그래프 5. 장르별 총 관객 수 박스플롯
+# ----------------------------------
+st.divider()
+st.header("그래프 5. 장르별 총 관객 수 박스플롯")
+
+box_df = df.dropna(
+    subset=["genre", "total_audi", "movieNm"]
+).copy()
+
+box_df = box_df[box_df["total_audi"] >= 0]
+
+# 영화가 10편 이상인 장르만 선택
+genre_movie_counts = box_df["genre"].value_counts()
+
+selected_genres = genre_movie_counts[
+    genre_movie_counts >= 10
+].index
+
+box_df = box_df[
+    box_df["genre"].isin(selected_genres)
+].copy()
+
+if not box_df.empty:
+    fig5 = px.box(
+        box_df,
+        x="genre",
+        y="total_audi",
+        color="genre",
+        points="outliers",
+        hover_name="movieNm",
+        hover_data={
+            "genre": True,
+            "total_audi": ":,.0f"
+        },
+        labels={
+            "genre": "장르",
+            "total_audi": "총 관객 수(명)",
+            "movieNm": "영화명"
+        },
+        title="영화가 10편 이상인 장르의 총 관객 수 분포"
+    )
+
+    fig5.update_layout(
+        xaxis_title="장르",
+        yaxis_title="총 관객 수(명)",
+        showlegend=False,
+        hovermode="closest"
+    )
+
+    st.plotly_chart(fig5, use_container_width=True)
+
+    st.caption(
+        "상자 밖의 점은 이상치로 표시된 영화입니다. "
+        "해당 점에 마우스를 올리면 영화명과 총 관객 수를 확인할 수 있습니다."
+    )
+
+    st.markdown("**이 그래프로 알 수 있는 것**")
+    st.write(
+        "영화가 10편 이상인 장르만 비교하여 장르별 총 관객 수의 "
+        "중앙값과 분포 범위를 파악할 수 있다. "
+        "이상치로 표시된 영화를 통해 같은 장르 안에서도 "
+        "관객 수가 특히 높거나 낮은 영화가 있는지 살펴볼 수 있다."
+    )
+
+else:
+    st.warning(
+        "영화가 10편 이상인 장르의 총 관객 수 데이터가 없습니다."
+    )
