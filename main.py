@@ -31,8 +31,6 @@ DATA_URL = (
 @st.cache_data
 def load_data():
     df = pd.read_csv(DATA_URL)
-
-    # 열 이름 앞뒤 공백 제거
     df.columns = df.columns.str.strip()
 
     # 개봉일을 실제 날짜 자료형으로 변환
@@ -42,7 +40,7 @@ def load_data():
         errors="coerce"
     )
 
-    # 장르가 여러 개라면 첫 번째 장르만 사용
+    # 여러 장르가 있으면 첫 번째 장르만 사용
     df["genre"] = (
         df["genre"]
         .fillna("미분류")
@@ -64,6 +62,9 @@ def load_data():
 
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # 영화명 결측치 제거
+    df = df.dropna(subset=["movieNm"]).copy()
 
     return df
 
@@ -104,17 +105,15 @@ genre_counts = (
     .sort_values("영화 편수", ascending=False)
 )
 
-# Plotly 도넛 그래프 생성
+# 도넛 그래프 생성
 fig1 = px.pie(
     genre_counts,
     names="genre",
     values="영화 편수",
     hole=0.45,
-    title="장르별 영화 편수 분포",
-    custom_data=["영화 편수"]
+    title="장르별 영화 편수 분포"
 )
 
-# 마우스 오버 시 편수와 비율 표시
 fig1.update_traces(
     textinfo="percent",
     hovertemplate=(
@@ -142,11 +141,52 @@ st.write(
 
 
 # ==========================================
-# 그래프 2. 추가 예정
+# 그래프 2. 장르별 영화 총 관객 트리맵
 # ==========================================
 st.divider()
-st.header("그래프 2. 추가 예정")
-st.caption("영화 데이터의 분포와 관계를 분석하는 그래프를 추가할 공간입니다.")
+st.header("그래프 2. 장르별 영화 총 관객 트리맵")
+
+st.markdown(
+    "장르 안에 개별 영화를 배치하고, "
+    "영화별 총 관객 수에 비례하여 칸의 크기를 나타냅니다."
+)
+
+# 트리맵에 사용할 데이터 정리
+treemap_df = df.dropna(subset=["total_audi"]).copy()
+
+# 음수 관객 수는 트리맵 크기로 사용할 수 없으므로 제외
+treemap_df = treemap_df[treemap_df["total_audi"] >= 0]
+
+# 트리맵 생성
+fig2 = px.treemap(
+    treemap_df,
+    path=["genre", "movieNm"],
+    values="total_audi",
+    title="장르별 영화 총 관객 분포",
+    custom_data=["total_audi"]
+)
+
+# 칸에 마우스를 올렸을 때 영화명과 총 관객 표시
+fig2.update_traces(
+    hovertemplate=(
+        "영화명: %{label}<br>"
+        "총 관객: %{value:,.0f}명"
+        "<extra></extra>"
+    )
+)
+
+fig2.update_layout(
+    margin=dict(t=50, l=10, r=10, b=10)
+)
+
+st.plotly_chart(fig2, use_container_width=True)
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.write(
+    "장르별 영화의 총 관객 규모를 면적에 따라 비교하여 "
+    "전체 관객 수에서 큰 비중을 차지하는 영화와 "
+    "장르별 흥행 분포를 파악할 수 있다."
+)
 
 
 # ==========================================
@@ -154,4 +194,15 @@ st.caption("영화 데이터의 분포와 관계를 분석하는 그래프를 �
 # ==========================================
 st.divider()
 st.header("그래프 3. 추가 예정")
+st.caption(
+    "영화 데이터의 분포와 관계를 분석하는 "
+    "새로운 그래프를 추가할 공간입니다."
+)
+
+
+# ==========================================
+# 그래프 4. 추가 예정
+# ==========================================
+st.divider()
+st.header("그래프 4. 추가 예정")
 st.caption("새로운 분석 그래프를 추가할 공간입니다.")
