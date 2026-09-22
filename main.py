@@ -155,8 +155,6 @@ hist_df = df.dropna(subset=["total_audi"]).copy()
 hist_df = hist_df[hist_df["total_audi"] >= 0]
 
 if not hist_df.empty:
-
-    # 총 관객 수 히스토그램
     fig3 = px.histogram(
         hist_df,
         x="total_audi",
@@ -198,11 +196,10 @@ if not hist_df.empty:
     # 총 관객 수가 가장 많은 영화
     top_movie = hist_df.loc[hist_df["total_audi"].idxmax()]
 
-    # 히스토그램 분석 결과 출력
     st.markdown("### 📊 히스토그램 분석 결과")
 
     st.write(
-        f"대부분의 영화가 가장 많이 분포한 구간은 "
+        f"영화가 가장 많이 분포한 구간은 "
         f"**{most_common_bin.left:,.0f}명 ~ "
         f"{most_common_bin.right:,.0f}명**이며, "
         f"이 구간에 **{most_common_count}편**의 영화가 포함되어 있다."
@@ -225,8 +222,60 @@ st.write(
 
 
 # ----------------------------------
-# 그래프 4. 추후 추가 예정
+# 그래프 4. 개봉일 스크린 수와 총 관객의 관계
 # ----------------------------------
 st.divider()
-st.header("그래프 4. 추후 추가 예정")
-st.info("다음 그래프를 이 영역에 추가할 수 있습니다.")
+st.header("그래프 4. 개봉일 스크린 수와 총 관객의 관계")
+
+scatter_df = df.dropna(
+    subset=["first_scrn", "total_audi", "movieNm", "genre"]
+).copy()
+
+scatter_df = scatter_df[
+    (scatter_df["first_scrn"] >= 0) &
+    (scatter_df["total_audi"] >= 0)
+]
+
+if not scatter_df.empty:
+    fig4 = px.scatter(
+        scatter_df,
+        x="first_scrn",
+        y="total_audi",
+        color="genre",
+        hover_name="movieNm",
+        hover_data={
+            "first_scrn": ":,.0f",
+            "total_audi": ":,.0f",
+            "genre": True
+        },
+        labels={
+            "first_scrn": "개봉일 스크린 수(개)",
+            "total_audi": "총 관객 수(명)",
+            "genre": "장르"
+        },
+        title="개봉일 스크린 수와 총 관객 수의 관계"
+    )
+
+    fig4.update_traces(
+        marker=dict(size=10, opacity=0.75)
+    )
+
+    fig4.update_layout(
+        xaxis_title="개봉일 스크린 수(개)",
+        yaxis_title="총 관객 수(명)",
+        legend_title="장르",
+        hovermode="closest"
+    )
+
+    st.plotly_chart(fig4, use_container_width=True)
+
+else:
+    st.warning("산점도를 그릴 데이터가 없습니다.")
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.write(
+    "개봉일 스크린 수와 총 관객 수 사이의 관계를 살펴보고, "
+    "장르별 흥행 양상과 스크린 수가 많은 영화의 관객 규모를 비교할 수 있다. "
+    "단, 산점도만으로 스크린 수가 관객 수 증가의 직접적인 원인이라고 "
+    "단정할 수는 없다."
+)
