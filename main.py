@@ -361,27 +361,27 @@ st.header(
 )
 
 graph8_df = df.dropna(
-    subset=["days_in_top10", "total_audi", "movieNm"]
+    subset=["first_week_audi", "days_in_top10", "movieNm"]
 ).copy()
 
 graph8_df = graph8_df[
-    (graph8_df["days_in_top10"] >= 0) &
-    (graph8_df["total_audi"] >= 0)
+    (graph8_df["first_week_audi"] >= 0) &
+    (graph8_df["days_in_top10"] >= 0)
 ]
 
 if not graph8_df.empty:
     fig8 = px.scatter(
         graph8_df,
-        x="days_in_top10",
-        y="total_audi",
+        x="first_week_audi",
+        y="days_in_top10",
         hover_name="movieNm",
         hover_data={
-            "days_in_top10": ":,.0f",
-            "total_audi": ":,.0f"
+            "first_week_audi": ":,.0f",
+            "days_in_top10": ":,.0f"
         },
         labels={
-            "days_in_top10": "10위권에 머문 날수(일)",
-            "total_audi": "총 관객 수(명)"
+            "first_week_audi": "첫 주 관객 수(명)",
+            "days_in_top10": "10위권에 머문 날수(일)"
         },
         title="첫 주 관객 수가 많았던 영화는 10위권에도 오래 머무르는가?"
     )
@@ -394,8 +394,8 @@ if not graph8_df.empty:
     )
 
     fig8.update_layout(
-        xaxis_title="10위권에 머문 날수(일)",
-        yaxis_title="총 관객 수(명)",
+        xaxis_title="첫 주 관객 수(명)",
+        yaxis_title="10위권에 머문 날수(일)",
         hovermode="closest"
     )
 
@@ -403,21 +403,17 @@ if not graph8_df.empty:
 
     st.caption(
         "각 점은 영화 한 편을 나타냅니다. "
-        "점에 마우스를 올리면 영화명, 10위권 체류 일수, 총 관객 수를 확인할 수 있습니다."
+        "점에 마우스를 올리면 영화명, 첫 주 관객 수, "
+        "10위권 체류 일수를 확인할 수 있습니다."
     )
 
 else:
     st.warning("산점도를 그릴 데이터가 없습니다.")
 
-
-# ==================================
-# 그래프 8 해석
-# ==================================
 st.markdown("**이 그래프로 알 수 있는 것**")
 
 st.write(
-    "영화가 박스오피스 10위권에 머문 날수와 총 관객 수의 관계를 "
-    "살펴볼 수 있다. 이를 통해 10위권 체류 기간이 긴 영화에서 "
-    "총 관객 수도 높게 나타나는 경향이 있는지 확인할 수 있다. "
-    "단, 두 변수의 관계만으로 인과관계를 단정할 수는 없다."
+    "첫 주 관객 수와 10위권 체류 기간의 관계를 살펴보며, "
+    "초기 흥행이 강했던 영화가 10위권에 더 오래 머무르는 경향이 있는지 "
+    "확인할 수 있다."
 )
