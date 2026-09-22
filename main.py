@@ -51,6 +51,7 @@ def load_data():
     return df
 
 
+# 데이터 불러오기
 try:
     df = load_data()
 except Exception as e:
@@ -64,7 +65,9 @@ st.info(
 )
 
 
+# ----------------------------------
 # 그래프 1. 장르별 영화 편수
+# ----------------------------------
 st.divider()
 st.header("그래프 1. 장르별 영화 편수")
 
@@ -98,44 +101,53 @@ st.plotly_chart(fig1, use_container_width=True)
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.write(
-    "영화 장르별 편수와 비율을 비교하여 해당 기간에 "
+    "영화 장르별 편수와 비율을 비교하여 "
     "박스오피스 10위권에 진입한 영화의 장르별 분포를 파악할 수 있다."
 )
 
 
-# 그래프 2. 장르별 영화 총 관객 트리맵
+# ----------------------------------
+# 그래프 2. 장르별 총 관객 트리맵
+# ----------------------------------
 st.divider()
 st.header("그래프 2. 장르별 영화 총 관객 트리맵")
 
 treemap_df = df.dropna(subset=["total_audi"]).copy()
 treemap_df = treemap_df[treemap_df["total_audi"] >= 0]
 
-fig2 = px.treemap(
-    treemap_df,
-    path=["genre", "movieNm"],
-    values="total_audi",
-    title="장르별 영화 총 관객 분포"
-)
-
-fig2.update_traces(
-    hovertemplate=(
-        "영화명: %{label}<br>"
-        "총 관객: %{value:,.0f}명<extra></extra>"
+if not treemap_df.empty:
+    fig2 = px.treemap(
+        treemap_df,
+        path=["genre", "movieNm"],
+        values="total_audi",
+        title="장르별 영화 총 관객 분포"
     )
-)
 
-fig2.update_layout(margin=dict(t=50, l=10, r=10, b=10))
+    fig2.update_traces(
+        hovertemplate=(
+            "영화명: %{label}<br>"
+            "총 관객: %{value:,.0f}명<extra></extra>"
+        )
+    )
 
-st.plotly_chart(fig2, use_container_width=True)
+    fig2.update_layout(
+        margin=dict(t=50, l=10, r=10, b=10)
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+else:
+    st.warning("트리맵을 그릴 총 관객 수 데이터가 없습니다.")
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.write(
-    "장르별 영화의 총 관객 규모를 면적에 따라 비교하여 "
-    "관객 수에서 큰 비중을 차지하는 영화와 장르별 흥행 분포를 파악할 수 있다."
+    "장르별 영화의 총 관객 규모를 면적으로 비교하여 "
+    "영화와 장르별 흥행 분포를 파악할 수 있다."
 )
 
 
+# ----------------------------------
 # 그래프 3. 총 관객 수 히스토그램
+# ----------------------------------
 st.divider()
 st.header("그래프 3. 영화별 총 관객 수 분포")
 
@@ -143,13 +155,17 @@ hist_df = df.dropna(subset=["total_audi"]).copy()
 hist_df = hist_df[hist_df["total_audi"] >= 0]
 
 if not hist_df.empty:
+
+    # 총 관객 수 히스토그램
     fig3 = px.histogram(
         hist_df,
         x="total_audi",
         nbins=20,
         title="영화별 총 관객 수 히스토그램",
-        labels={"total_audi": "총 관객 수(명)", "count": "영화 편수"},
-        hover_data={"movieNm": True, "total_audi": ":,.0f"}
+        labels={
+            "total_audi": "총 관객 수(명)",
+            "count": "영화 편수"
+        }
     )
 
     fig3.update_layout(
@@ -168,12 +184,13 @@ if not hist_df.empty:
     st.plotly_chart(fig3, use_container_width=True)
 
     # 영화가 가장 많이 몰린 구간 계산
-    bin_counts, bin_edges = pd.cut(
+    bins = pd.cut(
         hist_df["total_audi"],
         bins=20,
-        include_lowest=True,
-        retbins=True
-    ).value_counts().sort_index(), None
+        include_lowest=True
+    )
+
+    bin_counts = bins.value_counts().sort_index()
 
     most_common_bin = bin_counts.idxmax()
     most_common_count = bin_counts.max()
@@ -181,17 +198,18 @@ if not hist_df.empty:
     # 총 관객 수가 가장 많은 영화
     top_movie = hist_df.loc[hist_df["total_audi"].idxmax()]
 
-    st.markdown("**히스토그램 분석 결과**")
+    # 히스토그램 분석 결과 출력
+    st.markdown("### 📊 히스토그램 분석 결과")
 
     st.write(
-        f"• 영화가 가장 많이 분포한 구간은 "
+        f"대부분의 영화가 가장 많이 분포한 구간은 "
         f"**{most_common_bin.left:,.0f}명 ~ "
         f"{most_common_bin.right:,.0f}명**이며, "
-        f"이 구간에 {most_common_count}편의 영화가 포함되어 있다."
+        f"이 구간에 **{most_common_count}편**의 영화가 포함되어 있다."
     )
 
     st.write(
-        f"• 총 관객 수가 가장 많은 영화는 "
+        f"총 관객 수가 가장 많은 영화는 "
         f"**{top_movie['movieNm']}**이며, "
         f"총 관객 수는 **{top_movie['total_audi']:,.0f}명**이다."
     )
@@ -201,12 +219,14 @@ else:
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.write(
-    "히스토그램을 통해 영화별 총 관객 수가 어느 구간에 집중되어 있는지 "
-    "확인하고, 영화들의 흥행 규모 분포와 최다 관객 영화를 파악할 수 있다."
+    "히스토그램을 통해 영화별 총 관객 수가 집중된 구간을 확인하고, "
+    "영화들의 흥행 규모와 최다 관객 영화를 파악할 수 있다."
 )
 
 
+# ----------------------------------
 # 그래프 4. 추후 추가 예정
+# ----------------------------------
 st.divider()
 st.header("그래프 4. 추후 추가 예정")
 st.info("다음 그래프를 이 영역에 추가할 수 있습니다.")
